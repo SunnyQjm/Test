@@ -135,7 +135,7 @@ public class EasyRefreshLayout extends ViewGroup {
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         System.out.println("onLayout");
         //将头部署在当前视图之外
-        header.layout(0, -header.getMeasuredHeight(), getWidth(), getHeight());
+        header.layout(0, -header.getMeasuredHeight(), getWidth(), header.getHeight());
         //部署内容
         contentView.layout(0, 0, contentView.getMeasuredWidth(), contentView.getMeasuredHeight());
         headerHeight = header.getMeasuredHeight();
