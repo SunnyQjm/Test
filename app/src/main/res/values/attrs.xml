@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="progress_value" format="float"/>
+    <attr name="progress_width" format="dimension"/>
+    <attr name="background_width" format="dimension"/>
+    <attr name="progress_color" format="reference|color"/>
+    <attr name="background_color" format="reference|color"/>
+    <attr name="finish_img" format="reference"/>
+    <attr name="icon_color" format="color"/>
+    <attr name="icon_stroke_width" format="dimension"/>
+
+    <declare-styleable name="MyCircleProgress">
+        <attr name="progress_value"/>
+        <attr name="progress_width"/>
+        <attr name="background_width"/>
+        <attr name="progress_color"/>
+        <attr name="background_color"/>
+        <attr name="finish_img"/>
+        <attr name="icon_color"/>
+        <attr name="icon_stroke_width"/>
+    </declare-styleable>
+
+
+
+    <attr name="drawable_src" format="reference"/>
+    <attr name="drawable_width" format="dimension"/>
+    <attr name="drawable_height" format="dimension"/>
+    <attr name="drawable_location">
+        <enum name="left" value="1"/>
+        <enum name="top" value="2"/>
+        <enum name="right" value="3"/>
+        <enum name="bottom" value="4"/>
+    </attr>
+
+    <declare-styleable name="RichText">
+        <attr name="drawable_src"/>
+        <attr name="drawable_width"/>
+        <attr name="drawable_height"/>
+        <attr name="drawable_location"/>
+    </declare-styleable>
+
+    <declare-styleable name="RichEditText">
+        <attr name="drawable_src"/>
+        <attr name="drawable_width"/>
+        <attr name="drawable_height"/>
+        <attr name="drawable_location"/>
+    </declare-styleable>
+
+    <declare-styleable name="LineMenuItem">
+        <attr name="menu_title" format="string"/>
+        <attr name="menu_value" format="string"/>
+        <attr name="menu_title_size" format="dimension"/>
+        <attr name="menu_title_color" format="color"/>
+        <attr name="menu_value_size" format="dimension"/>
+        <attr name="menu_value_color" format="color"/>
+        <attr name="left_resource" format="reference"/>
+        <attr name="right_resource" format="reference"/>
+        <attr name="left_icon_size" format="dimension"/>
+        <attr name="right_icon_size" format="dimension"/>
+        <attr name="is_right_icon_visible" format="boolean"/>
+        <attr name="right_margin" format="dimension"/>
+        <attr name="left_margin" format="dimension"/>
+    </declare-styleable>
+
+    <declare-styleable name="EasyBar">
+        <attr name="title" format="string"/>
+        <attr name="title_size" format="dimension"/>
+        <attr name="title_color" format="color"/>
+        <attr name="left_icon" format="reference"/>
+        <attr name="right_icon" format="reference"/>
+        <attr name="icon_size" format="dimension"/>
+        <attr name="icon_margin" format="dimension"/>
+    </declare-styleable>
+</resources>

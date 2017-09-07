@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.sunny.test.views.EasyBar xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/easyBar"
+    android:layout_width="match_parent"
+    android:layout_height="60dp"
+    android:background="@color/application_theme_color"
+    app:icon_size="20dp"
+    app:title="优云"
+    app:title_color="@color/white"
+    app:title_size="17sp">
+
+</com.sunny.test.views.EasyBar>

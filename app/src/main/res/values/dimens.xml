@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <dimen name="down_process_radius">30dp</dimen>
+    <dimen name="progress_width">3dp</dimen>
+    <dimen name="default_stroke_width">5dp</dimen>
+    <dimen name="default_background_stroke_width">5dp</dimen>
+    <dimen name="default_icon_stroke_width">5dp</dimen>
+    <dimen name="main_icon_width">60dp</dimen>
+
+    <dimen name="def_height">50dp</dimen>
+
+    <dimen name="dp_4">4dp</dimen>
+    <dimen name="dp_10">10dp</dimen>
+    <dimen name="dp_40">40dp</dimen>
+    <dimen name="dp_72">72dp</dimen>
+
+    <dimen name="sp_12">12sp</dimen>
+    <dimen name="sp_14">14sp</dimen>
+    <dimen name="sp_16">16sp</dimen>
+    <dimen name="imgBtn_width">214dp</dimen>
+    <dimen name="imgBtn_height">44dp</dimen>
+    <dimen name="imgBtn_drawable_padding">8dp</dimen>
+    <dimen name="imgBtn_text_size">17sp</dimen>
+    <dimen name="imgBtn_padding_left">55dp</dimen>
+    <dimen name="imgBtn_padding_right">0dp</dimen>
+    <dimen name="imgBtn_drawable_size">19dp</dimen>
+
+    <dimen name="action_bar_height">49dp</dimen>
+    <dimen name="dialogplus_default_center_margin">16dp</dimen>
+    <dimen name="switch_height">26dp</dimen>
+    <dimen name="half_of_switch_height">13dp</dimen>
+    <dimen name="switch_width">35dp</dimen>
+
+    <dimen name="file_info_item_height">66dp</dimen>
+    <dimen name="dialog_width">250dp</dimen>
+    <dimen name="dialog_height">250dp</dimen>
+    <dimen name="little_icon_size">20dp</dimen>
+    <dimen name="share_item_icon_size">50dp</dimen>
+    <dimen name="imgBtn_long_width">272dp</dimen>
+    <dimen name="arrow_size">24dp</dimen>
+    <dimen name="mine_item_height">50dp</dimen>
+</resources>
