@@ -6,6 +6,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
+import android.widget.OverScroller;
 import android.widget.Scroller;
 
 /**
@@ -16,7 +17,7 @@ public class ScrollerLayout extends ViewGroup{
     /**
      * 用于完成滚动操作的实例
      */
-    private Scroller mScroller;
+    private OverScroller mScroller;
 
     /**
      * 判定为拖动的最小移动像素
@@ -60,7 +61,7 @@ public class ScrollerLayout extends ViewGroup{
     public ScrollerLayout(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         //第一步，创建Scroller实例
-        mScroller = new Scroller(context);
+        mScroller = new OverScroller(context);
         //获取TouchSlop值
         ViewConfiguration configuration = ViewConfiguration.get(context);
         mTouchSlop = configuration.getScaledPagingTouchSlop();
@@ -92,6 +93,7 @@ public class ScrollerLayout extends ViewGroup{
             rightBorder = getChildAt(getChildCount() - 1).getRight();
         }
     }
+
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
