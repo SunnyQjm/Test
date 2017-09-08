@@ -33,5 +33,6 @@
     <string name="upload_setting">上传设置</string>
     <string name="device_file">本机文件</string>
     <string name="forever">永久</string>
+    <string name="loading_">loading</string>
 
 </resources>

@@ -3,8 +3,9 @@ package com.sunny.test.activity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.LayoutInflater;
+import android.view.View;
 
 import com.sunny.test.R;
 import com.sunny.test.adapter.EasyStringAdapter;
@@ -40,28 +41,59 @@ public class CustomViewStudyActivity extends AppCompatActivity {
     }
 
     private void initView() {
-        for (int i = 0; i < 30; i++) {
+        for (int i = 0; i < 5; i++) {
             datas.add("item" + i);
         }
         adapter = new EasyStringAdapter(datas);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        CustomLinerLayoutManager linerLayoutManager = new CustomLinerLayoutManager(this);
+        recyclerView.setLayoutManager(linerLayoutManager);
         recyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
         adapter.bindToRecyclerView(recyclerView);
 
         refreshLayout.setOnRefreshListener(() -> {
+            linerLayoutManager.setScrollAble(false);
             Observable.create(e -> {
-                for (int i = 0; i < 3; i++) {
-                    datas.add(0, "add item" + i);
-                    Thread.sleep(800);
+                        for (int i = 0; i < 4; i++) {
+                            datas.add(0, "add item" + i);
+                            Thread.sleep(500);
+                        }
+                        e.onNext(new byte[0]);
+                    }).subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(o -> {
+                                adapter.notifyDataSetChanged();
+                                refreshLayout.closeRefresh();
+                                linerLayoutManager.setScrollAble(true);
+                            });
                 }
-                e.onNext(new byte[0]);
-            }).subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(o -> {
-                        adapter.notifyDataSetChanged();
-                        refreshLayout.closeRefresh();
-                    });
-        });
+        );
+
+        refreshLayout.setOnLoadListener(() -> Observable.create(e -> {
+            linerLayoutManager.setScrollAble(false);
+            for (int i = 0; i < 4; i++) {
+                datas.add("load item" + i);
+                Thread.sleep(500);
+            }
+            e.onNext(new byte[0]);
+        }).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(o -> {
+                    adapter.notifyDataSetChanged();
+                    refreshLayout.closeLoad();
+                    linerLayoutManager.setScrollAble(true);
+                    loadFinish();
+                }));
+
+    }
+
+    private void loadFinish() {
+        View view = createFooterView();
+        adapter.setFooterView(view);
+        refreshLayout.setLoadAble(false);
+    }
+
+    private View createFooterView() {
+        return LayoutInflater.from(this).inflate(R.layout.easy_refresh_end, null, false);
     }
 
 }
