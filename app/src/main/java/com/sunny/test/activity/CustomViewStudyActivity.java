@@ -9,7 +9,7 @@ import android.view.View;
 
 import com.sunny.test.R;
 import com.sunny.test.adapter.EasyStringAdapter;
-import com.sunny.test.views.EasyRefreshLayout;
+import com.sunny.test.views.easy_refresh.EasyRefreshLayout;
 
 import java.util.ArrayList;
 import java.util.List;

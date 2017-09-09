@@ -1,4 +1,4 @@
-package com.sunny.test.views;
+package com.sunny.test.views.easy_refresh;
 
 import android.content.Context;
 import android.support.annotation.LayoutRes;
@@ -226,18 +226,26 @@ public class EasyRefreshLayout extends ViewGroup {
         if (contentView != null) {
             System.out.println("onLayout");
             //将头部署在当前视图之外
-            header.layout(0, -header.getMeasuredHeight(), getWidth(), header.getMeasuredHeight());
+            if(header != null) {
+                header.layout(0, -header.getMeasuredHeight(), getWidth(), header.getMeasuredHeight());
+                headerHeight = header.getMeasuredHeight();
+            }
+
             //部署内容
-            contentView.layout(0, 0, getWidth(), getHeight());
+            if(contentView != null){
+                contentView.layout(0, 0, getWidth(), getHeight());
+                contentViewHeight = contentView.getMeasuredHeight();
+            }
 
             //部署尾布局
-            footer.layout(0, contentView.getMeasuredHeight(), getWidth(),
-                    contentView.getMeasuredHeight() + footer.getMeasuredHeight());
+            if(footer != null){
+                footer.layout(0, contentView.getMeasuredHeight(), getWidth(),
+                        contentView.getMeasuredHeight() + footer.getMeasuredHeight());
+                footerHeight = footer.getMeasuredHeight();
+            }
 
-            headerHeight = header.getMeasuredHeight();
-            footerHeight = footer.getMeasuredHeight();
+            //获取当前布局的高度
             layoutHeight = getHeight();
-            contentViewHeight = contentView.getMeasuredHeight();
         }
     }
 
