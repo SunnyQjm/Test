@@ -10,10 +10,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.OverScroller;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 
 import com.sunny.test.R;
 
@@ -67,13 +64,9 @@ public class EasyRefreshLayout extends ViewGroup {
     @LayoutRes
     private int endResourceId = R.layout.easy_refresh_end;
 
-    private View header;
+    private EasyRefreshHeader header;
+    private EasyRefreshFooter footer;
     private View contentView;
-    private View footer;
-    private TextView footerText;
-    private ImageView headerArrow;
-    private TextView headerText;
-    private ProgressBar headerProgressBar;
     private LayoutInflater inflater;
     private OnRefreshListener refreshListener;
     private OnLoadListener loadListener;
@@ -191,22 +184,83 @@ public class EasyRefreshLayout extends ViewGroup {
         contentView = getChildAt(0);
         contentView.setPadding(0, 0, 0, 0);
 
-        //将头布局加载到当前布局
-        inflater.inflate(headerResourceId, this, true);
-        header = getChildAt(getChildCount() - 1);
-        headerArrow = (ImageView) header.findViewById(R.id.refresh_arrow);
-        headerText = (TextView) header.findViewById(R.id.refresh_text);
-        headerProgressBar = (ProgressBar) header.findViewById(R.id.refresh_progressBar);
+        //如果id有效
+        if (headerResourceId > 0) {
+            //将头布局加载到当前布局
+            inflater.inflate(headerResourceId, this, true);
+            header = new EasyRefreshHeader(getChildAt(getChildCount() - 1)) {
 
-        //添加加载布局
-        inflater.inflate(footerResourceId, this, true);
-        footer = getChildAt(getChildCount() - 1);
-        footerText = (TextView) footer.findViewById(R.id.footer_text);
+                @Override
+                public void scrolling(int scrollDistance, int totalHeaderHeight, float changeRate) {
+                    if (scrollDistance > (headerHeight * changeRate)) {
+                        header.setText(R.id.refresh_text, "释放刷新");
+                        header.setRotation(R.id.refresh_arrow, 180f);
+                        header.setVisibility(R.id.refresh_text, VISIBLE);
+                        header.setVisibility(R.id.refresh_progressBar, INVISIBLE);
+                        header.setVisibility(R.id.refresh_arrow, VISIBLE);
+                    } else {
+                        header.setText(R.id.refresh_text, "下拉刷新");
+                        header.setRotation(R.id.refresh_arrow, 0f);
+                        header.setVisibility(R.id.refresh_text, VISIBLE);
+                        header.setVisibility(R.id.refresh_progressBar, INVISIBLE);
+                        header.setVisibility(R.id.refresh_arrow, VISIBLE);
+                    }
+                }
+
+                @Override
+                public void init() {
+                    header.setText(R.id.refresh_text, "下拉刷新");
+                    header.setRotation(R.id.refresh_arrow, 0f);
+                    header.setVisibility(R.id.refresh_text, VISIBLE);
+                    header.setVisibility(R.id.refresh_progressBar, INVISIBLE);
+                    header.setVisibility(R.id.refresh_arrow, VISIBLE);
+                }
+
+                @Override
+                public void refreshing() {
+                    header.setText(R.id.refresh_text, "正在刷新");
+                    header.setVisibility(R.id.refresh_text, INVISIBLE);
+                    header.setVisibility(R.id.refresh_progressBar, VISIBLE);
+                    header.setVisibility(R.id.refresh_arrow, INVISIBLE);
+                }
+
+                @Override
+                public void refreshFinish() {
+                    init();
+                }
+            };
+        }
+
+        if(footerResourceId > 0) {
+            //添加加载布局
+            inflater.inflate(footerResourceId, this, true);
+            footer = new EasyRefreshFooter(getChildAt(getChildCount() - 1)) {
+                @Override
+                public void scrolling(int scrollDistance, int totalFooterHeight, float changeRate) {
+
+                }
+
+                @Override
+                public void init() {
+                    footer.setVisibility(R.id.footer_text, VISIBLE);
+                }
+
+                @Override
+                public void loading() {
+
+                }
+
+                @Override
+                public void loadFinish() {
+                    footer.setVisibility(R.id.footer_text, INVISIBLE);
+                }
+            };
+            footer.setVisibility(R.id.footer_text, INVISIBLE);
+        }
 
         //添加数据加载结束布局
         inflater.inflate(endResourceId, this, true);
 
-        footer.setVisibility(INVISIBLE);
     }
 
     @Override
@@ -226,22 +280,31 @@ public class EasyRefreshLayout extends ViewGroup {
         if (contentView != null) {
             System.out.println("onLayout");
             //将头部署在当前视图之外
-            if(header != null) {
+            if (header != null) {
                 header.layout(0, -header.getMeasuredHeight(), getWidth(), header.getMeasuredHeight());
                 headerHeight = header.getMeasuredHeight();
+            } else {
+                //如果头布局都没有，就不允许下拉刷新
+                setRefreshAble(false);
             }
 
             //部署内容
-            if(contentView != null){
+            if (contentView != null) {
                 contentView.layout(0, 0, getWidth(), getHeight());
                 contentViewHeight = contentView.getMeasuredHeight();
+            } else {
+                setRefreshAble(false);
+                setLoadAble(false);
             }
 
             //部署尾布局
-            if(footer != null){
+            if (footer != null) {
                 footer.layout(0, contentView.getMeasuredHeight(), getWidth(),
                         contentView.getMeasuredHeight() + footer.getMeasuredHeight());
                 footerHeight = footer.getMeasuredHeight();
+            } else {
+                //如果没有尾布局，就不允许上拉加载更多
+                setLoadAble(false);
             }
 
             //获取当前布局的高度
@@ -264,15 +327,12 @@ public class EasyRefreshLayout extends ViewGroup {
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
+        //处理多点触控个，精确计算手指移动的距离
         dealMulTouchEvent(ev);
         switch (ev.getAction()) {
             case MotionEvent.ACTION_DOWN:
-//                mYDown = ev.getRawY();
-//                mYLastMove = mYDown;
-//                updateViewContent();
                 break;
             case MotionEvent.ACTION_MOVE:
-//                mYMove = ev.getRawY();
                 float diff = Math.abs(mYMove - mYDown);
                 mYLastMove = mYMove;
 
@@ -285,7 +345,7 @@ public class EasyRefreshLayout extends ViewGroup {
                     } else if (isLoadAble && (mode == Mode.BOTH || mode == Mode.LOAD_ONLY)) {
                         status = Status.SCROLL_UP;
                         //上拉加载更多的时候显示底部布局
-                        footer.setVisibility(VISIBLE);
+                        footer.init();
                     }
                     return true;
                 }
@@ -300,7 +360,7 @@ public class EasyRefreshLayout extends ViewGroup {
         switch (event.getAction()) {
             case MotionEvent.ACTION_MOVE:
                 System.out.println("ACTION_MOVE：" + status);
-//                mYMove = event.getRawY();
+
                 //自按下滚动的距离
                 int scrollDistance = Math.abs(getScrollY());
                 int deltaY = (int) (mYLastMove - mYMove);
@@ -311,16 +371,17 @@ public class EasyRefreshLayout extends ViewGroup {
                         //根据下滑的比例，改变显示的视图
                         if (scrollDistance > (headerHeight * changeRate)) {
                             status = Status.SCROLL_DOWN_EFFECT;
-                            updateViewContent();
                         } else {
                             status = Status.SCROLL_DOWN;
-                            updateViewContent();
                         }
+
+                        //滚动过程回调
+                        header.scrolling(scrollDistance, headerHeight, changeRate);
 
                         System.out.println("getScrollY: " + getScrollY());
                         if (getScrollY() > 0) {
                             status = Status.NORMAL;
-                            updateViewContent();
+                            header.init();
                             scrollTo(0, 0);
                             event.setAction(MotionEvent.ACTION_DOWN);
                             dispatchTouchEvent(event);
@@ -337,11 +398,12 @@ public class EasyRefreshLayout extends ViewGroup {
                         System.out.println("getScrollY: " + getScrollY());
                         if (getScrollY() < 0) {
                             status = Status.NORMAL;
-                            updateViewContent();
+                            footer.loadFinish();
                             scrollTo(0, 0);
                             event.setAction(MotionEvent.ACTION_DOWN);
                             dispatchTouchEvent(event);
                         }
+                        footer.scrolling(scrollDistance, footerHeight, 1);
 
                         if ((getScrollY() >= 0 && getScrollY() <= footerHeight)
                                 || (getScrollY() >= 0 && deltaY < 0)) {
@@ -366,10 +428,10 @@ public class EasyRefreshLayout extends ViewGroup {
                         break;
                     case SCROLL_DOWN:
                     case NORMAL:
+                        closeLoad();
                         closeRefresh();
                         break;
                 }
-                updateViewContent();
                 //如果当前处于正常状态，则相应点击事件
                 if (status == Status.NORMAL)
                     performClick();
@@ -391,7 +453,6 @@ public class EasyRefreshLayout extends ViewGroup {
                 final int pointerIndex = MotionEventCompat.getActionIndex(ev);
                 mYDown = ev.getY(pointerIndex);
                 mYLastMove = mYDown;
-                updateViewContent();
                 mActivePointerId = ev.getPointerId(0);
                 break;
             }
@@ -418,7 +479,7 @@ public class EasyRefreshLayout extends ViewGroup {
             }
             case MotionEvent.ACTION_POINTER_UP: {
                 final int pointerIndex = MotionEventCompat.getActionIndex(ev);
-                final int pointerId = MotionEventCompat.getPointerId(ev, pointerIndex);
+                final int pointerId = ev.getPointerId(pointerIndex);
                 //如果有效点抬起，就重新选择有效点
                 if (pointerId == mActivePointerId) {
                     final int newPointerIndex = pointerIndex == 0 ? 1 : 0;
@@ -437,6 +498,7 @@ public class EasyRefreshLayout extends ViewGroup {
         status = Status.LOADING;
         mScroller.startScroll(0, getScrollY(), 0, dy);
         invalidate();
+        footer.loading();
         callLoad();
     }
 
@@ -445,6 +507,7 @@ public class EasyRefreshLayout extends ViewGroup {
         status = Status.REFRESHING;
         mScroller.startScroll(0, getScrollY(), 0, dy);
         invalidate();
+        header.refreshing();
         callRefresh();
     }
 
@@ -460,31 +523,6 @@ public class EasyRefreshLayout extends ViewGroup {
             refreshListener.onRefresh();
     }
 
-    private void updateViewContent() {
-        switch (status) {
-            case NORMAL:
-            case SCROLL_DOWN:
-                headerText.setText("下拉刷新");
-                headerArrow.setRotation(0f);
-                headerText.setVisibility(VISIBLE);
-                headerProgressBar.setVisibility(INVISIBLE);
-                headerArrow.setVisibility(VISIBLE);
-                break;
-            case REFRESHING:
-                headerText.setText("正在刷新");
-                headerText.setVisibility(INVISIBLE);
-                headerProgressBar.setVisibility(VISIBLE);
-                headerArrow.setVisibility(INVISIBLE);
-                break;
-            case SCROLL_DOWN_EFFECT:
-                headerText.setText("释放刷新");
-                headerArrow.setRotation(180f);
-                headerText.setVisibility(VISIBLE);
-                headerProgressBar.setVisibility(INVISIBLE);
-                headerArrow.setVisibility(VISIBLE);
-                break;
-        }
-    }
 
     @Override
     public void computeScroll() {
@@ -518,7 +556,7 @@ public class EasyRefreshLayout extends ViewGroup {
      */
     private boolean isChildScrollToTop() {
         //如果contentView无法再继续向上滑则表示已经滑到顶部
-        return !ViewCompat.canScrollVertically(contentView, -1);
+        return contentView != null && !ViewCompat.canScrollVertically(contentView, -1);
     }
 
     /**
@@ -527,7 +565,7 @@ public class EasyRefreshLayout extends ViewGroup {
      * @return
      */
     private boolean isChildScrollToBottom() {
-        return !ViewCompat.canScrollVertically(contentView, 1);
+        return contentView != null && !ViewCompat.canScrollVertically(contentView, 1);
     }
 
 
@@ -568,9 +606,10 @@ public class EasyRefreshLayout extends ViewGroup {
         int dy = -getScrollY();
         status = Status.NORMAL;
         innerIsRefreshAble = true;
+        header.refreshFinish();
         mScroller.startScroll(0, getScrollY(), 0, dy);
         invalidate();
-        footer.setVisibility(INVISIBLE);
+        footer.loadFinish();
     }
 
     /**
@@ -581,7 +620,7 @@ public class EasyRefreshLayout extends ViewGroup {
         status = Status.NORMAL;
         innerIsLoadAble = true;
         mScroller.startScroll(0, getScrollY(), 0, dy);
-        footer.setVisibility(INVISIBLE);
+        footer.loadFinish();
         invalidate();
     }
 
