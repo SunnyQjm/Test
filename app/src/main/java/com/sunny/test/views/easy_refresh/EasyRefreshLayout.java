@@ -12,8 +12,6 @@ import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.widget.OverScroller;
 
-import com.sunny.test.R;
-
 /**
  * Created by Sunny on 2017/9/6 0006.
  */
@@ -50,22 +48,17 @@ public class EasyRefreshLayout extends ViewGroup {
      */
     private float moveRate = 1.5f;
 
-    /**
-     * 箭头转向比例，如果等于1则表示要头布局完全下拉箭头才转向
-     */
-    private float changeRate = 0.8f;
 
     @LayoutRes
-    private int headerResourceId = R.layout.easy_refresh_header;
+    private int headerResourceId = -1;
 
     @LayoutRes
-    private int footerResourceId = R.layout.easy_refresh_footer;
+    private int footerResourceId = -1;
 
-    @LayoutRes
-    private int endResourceId = R.layout.easy_refresh_end;
-
-    private EasyRefreshHeader header;
-    private EasyRefreshFooter footer;
+    private View header;
+    private EasyRefreshHeaderHandler easyRefreshHeader;
+    private View footer;
+    private EasyRefreshFooterHandler easyRefreshFooter;
     private View contentView;
     private LayoutInflater inflater;
     private OnRefreshListener refreshListener;
@@ -133,6 +126,11 @@ public class EasyRefreshLayout extends ViewGroup {
      */
     private Mode mode = Mode.BOTH;
 
+    /**
+     * 箭头转向比例，如果等于1则表示要头布局完全下拉箭头才转向
+     */
+    protected float changeRate = 0.8f;
+
     public enum Mode {
         REFRESH_ONLY, LOAD_ONLY, BOTH, NONE
     }
@@ -188,78 +186,17 @@ public class EasyRefreshLayout extends ViewGroup {
         if (headerResourceId > 0) {
             //将头布局加载到当前布局
             inflater.inflate(headerResourceId, this, true);
-            header = new EasyRefreshHeader(getChildAt(getChildCount() - 1)) {
-
-                @Override
-                public void scrolling(int scrollDistance, int totalHeaderHeight, float changeRate) {
-                    if (scrollDistance > (headerHeight * changeRate)) {
-                        header.setText(R.id.refresh_text, "释放刷新");
-                        header.setRotation(R.id.refresh_arrow, 180f);
-                        header.setVisibility(R.id.refresh_text, VISIBLE);
-                        header.setVisibility(R.id.refresh_progressBar, INVISIBLE);
-                        header.setVisibility(R.id.refresh_arrow, VISIBLE);
-                    } else {
-                        header.setText(R.id.refresh_text, "下拉刷新");
-                        header.setRotation(R.id.refresh_arrow, 0f);
-                        header.setVisibility(R.id.refresh_text, VISIBLE);
-                        header.setVisibility(R.id.refresh_progressBar, INVISIBLE);
-                        header.setVisibility(R.id.refresh_arrow, VISIBLE);
-                    }
-                }
-
-                @Override
-                public void init() {
-                    header.setText(R.id.refresh_text, "下拉刷新");
-                    header.setRotation(R.id.refresh_arrow, 0f);
-                    header.setVisibility(R.id.refresh_text, VISIBLE);
-                    header.setVisibility(R.id.refresh_progressBar, INVISIBLE);
-                    header.setVisibility(R.id.refresh_arrow, VISIBLE);
-                }
-
-                @Override
-                public void refreshing() {
-                    header.setText(R.id.refresh_text, "正在刷新");
-                    header.setVisibility(R.id.refresh_text, INVISIBLE);
-                    header.setVisibility(R.id.refresh_progressBar, VISIBLE);
-                    header.setVisibility(R.id.refresh_arrow, INVISIBLE);
-                }
-
-                @Override
-                public void refreshFinish() {
-                    init();
-                }
-            };
+            header = getChildAt(getChildCount() - 1);
+            easyRefreshHeader = new ArrowRefreshHeader(headerResourceId);
         }
 
-        if(footerResourceId > 0) {
+        if (footerResourceId > 0) {
             //添加加载布局
             inflater.inflate(footerResourceId, this, true);
-            footer = new EasyRefreshFooter(getChildAt(getChildCount() - 1)) {
-                @Override
-                public void scrolling(int scrollDistance, int totalFooterHeight, float changeRate) {
-
-                }
-
-                @Override
-                public void init() {
-                    footer.setVisibility(R.id.footer_text, VISIBLE);
-                }
-
-                @Override
-                public void loading() {
-
-                }
-
-                @Override
-                public void loadFinish() {
-                    footer.setVisibility(R.id.footer_text, INVISIBLE);
-                }
-            };
-            footer.setVisibility(R.id.footer_text, INVISIBLE);
+            footer = getChildAt(getChildCount() - 1);
+            easyRefreshFooter = new EasyRefreshFooter(footerResourceId);
+            footer.setVisibility(INVISIBLE);
         }
-
-        //添加数据加载结束布局
-        inflater.inflate(endResourceId, this, true);
 
     }
 
@@ -345,7 +282,7 @@ public class EasyRefreshLayout extends ViewGroup {
                     } else if (isLoadAble && (mode == Mode.BOTH || mode == Mode.LOAD_ONLY)) {
                         status = Status.SCROLL_UP;
                         //上拉加载更多的时候显示底部布局
-                        footer.init();
+                        footer.setVisibility(VISIBLE);
                     }
                     return true;
                 }
@@ -375,13 +312,16 @@ public class EasyRefreshLayout extends ViewGroup {
                             status = Status.SCROLL_DOWN;
                         }
 
-                        //滚动过程回调
-                        header.scrolling(scrollDistance, headerHeight, changeRate);
+                        if(easyRefreshHeader != null){
+                            //滚动过程回调
+                            easyRefreshHeader.scrolling(header, scrollDistance, headerHeight);
+                        }
 
                         System.out.println("getScrollY: " + getScrollY());
                         if (getScrollY() > 0) {
                             status = Status.NORMAL;
-                            header.init();
+                            if(easyRefreshHeader != null)
+                                easyRefreshHeader.init(header);
                             scrollTo(0, 0);
                             event.setAction(MotionEvent.ACTION_DOWN);
                             dispatchTouchEvent(event);
@@ -398,12 +338,15 @@ public class EasyRefreshLayout extends ViewGroup {
                         System.out.println("getScrollY: " + getScrollY());
                         if (getScrollY() < 0) {
                             status = Status.NORMAL;
-                            footer.loadFinish();
+                            if(easyRefreshFooter != null)
+                                easyRefreshFooter.loadFinish(footer);
+                            footer.setVisibility(INVISIBLE);
                             scrollTo(0, 0);
                             event.setAction(MotionEvent.ACTION_DOWN);
                             dispatchTouchEvent(event);
                         }
-                        footer.scrolling(scrollDistance, footerHeight, 1);
+                        if(easyRefreshFooter != null)
+                            easyRefreshFooter.scrolling(footer, scrollDistance, footerHeight);
 
                         if ((getScrollY() >= 0 && getScrollY() <= footerHeight)
                                 || (getScrollY() >= 0 && deltaY < 0)) {
@@ -415,7 +358,6 @@ public class EasyRefreshLayout extends ViewGroup {
                 break;
             case MotionEvent.ACTION_UP:
                 System.out.println("ACTION_UP");
-                System.out.println("headerHeight: " + headerHeight);
                 switch (status) {
                     case SCROLL_DOWN_EFFECT:
                         showRefresh();
@@ -498,7 +440,9 @@ public class EasyRefreshLayout extends ViewGroup {
         status = Status.LOADING;
         mScroller.startScroll(0, getScrollY(), 0, dy);
         invalidate();
-        footer.loading();
+        footer.setVisibility(VISIBLE);
+        if(easyRefreshFooter != null)
+            easyRefreshFooter.loadFinish(footer);
         callLoad();
     }
 
@@ -507,7 +451,8 @@ public class EasyRefreshLayout extends ViewGroup {
         status = Status.REFRESHING;
         mScroller.startScroll(0, getScrollY(), 0, dy);
         invalidate();
-        header.refreshing();
+        if(easyRefreshHeader != null)
+            easyRefreshHeader.refreshing(header);
         callRefresh();
     }
 
@@ -606,10 +551,12 @@ public class EasyRefreshLayout extends ViewGroup {
         int dy = -getScrollY();
         status = Status.NORMAL;
         innerIsRefreshAble = true;
-        header.refreshFinish();
+        if(easyRefreshHeader != null)
+            easyRefreshHeader.refreshFinish(header);
         mScroller.startScroll(0, getScrollY(), 0, dy);
         invalidate();
-        footer.loadFinish();
+        if(easyRefreshFooter != null)
+            easyRefreshFooter.loadFinish(footer);
     }
 
     /**
@@ -620,7 +567,8 @@ public class EasyRefreshLayout extends ViewGroup {
         status = Status.NORMAL;
         innerIsLoadAble = true;
         mScroller.startScroll(0, getScrollY(), 0, dy);
-        footer.loadFinish();
+        if(easyRefreshFooter != null)
+            easyRefreshFooter.loadFinish(footer);
         invalidate();
     }
 
@@ -633,14 +581,6 @@ public class EasyRefreshLayout extends ViewGroup {
         this.mode = mode;
     }
 
-    /**
-     * 设置改向的比例
-     *
-     * @param changeRate
-     */
-    public void setChangeRate(float changeRate) {
-        this.changeRate = changeRate;
-    }
 
     /**
      * 设置头尾滚动的距离与实际手滑动距离的比例
@@ -677,5 +617,38 @@ public class EasyRefreshLayout extends ViewGroup {
      */
     public void setRefreshAble(boolean refreshAble) {
         isRefreshAble = refreshAble;
+    }
+
+    /**
+     * 设置好自定义头布局
+     *
+     * @param easyRefreshHeader
+     */
+    public void setHeader(EasyRefreshHeaderHandler easyRefreshHeader) {
+        easyRefreshHeader.getView(inflater, this);
+        this.easyRefreshHeader = easyRefreshHeader;
+        this.header = getChildAt(getChildCount() - 1);
+        requestLayout();
+    }
+
+    /**
+     * 设置自定义尾布局
+     *
+     * @param easyRefreshFooter
+     */
+    public void setFooter(EasyRefreshFooterHandler easyRefreshFooter) {
+        easyRefreshFooter.getView(inflater, this);
+        this.easyRefreshFooter = easyRefreshFooter;
+        this.footer = getChildAt(getChildCount() - 1);
+        this.footer.setVisibility(INVISIBLE);
+        requestLayout();
+    }
+
+    /**
+     * 是否数据充满布局，才允许上拉加载更多
+     * @param loadOnlyDataFullScreen
+     */
+    public void setLoadOnlyDataFullScreen(boolean loadOnlyDataFullScreen) {
+        this.loadOnlyDataFullScreen = loadOnlyDataFullScreen;
     }
 }

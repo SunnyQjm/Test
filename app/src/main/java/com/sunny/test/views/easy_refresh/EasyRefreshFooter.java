@@ -1,59 +1,34 @@
 package com.sunny.test.views.easy_refresh;
 
 import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
 
 /**
- * Created by Sunny on 2017/9/9 0009.
+ * Created by Sunny on 2017/9/10 0010.
  */
 
-public abstract class EasyRefreshFooter {
-    private View footer;
+public class EasyRefreshFooter extends EasyRefreshFooterHandler{
 
-    public EasyRefreshFooter(View footer) {
-        this.footer = footer;
+    public EasyRefreshFooter(int footerResourceId) {
+        super(footerResourceId);
     }
 
-    public void layout(int l, int t, int r, int b) {
-        footer.layout(l, t, r, b);
+    @Override
+    public void scrolling(View footer, int scrollDistance, int totalHeaderHeight) {
+
     }
 
-    public final int getMeasuredWidth() {
-        return footer.getMeasuredWidth();
+    @Override
+    public void init(View footer) {
+
     }
 
-    public final int getMeasuredHeight() {
-        return footer.getMeasuredHeight();
+    @Override
+    public void loading(View footer) {
+
     }
 
-    public abstract void scrolling(int scrollDistance, int totalFooterHeight, float changeRate);
+    @Override
+    public void loadFinish(View footer) {
 
-    public abstract void init();
-
-    public abstract void loading();
-
-    public abstract void loadFinish();
-
-    public void setText(int id, String text) {
-        View view = footer.findViewById(id);
-        if(view instanceof TextView){
-            ((TextView)view).setText(text);
-        }
-        if(view instanceof Button){
-            ((Button)view).setText(text);
-        }
-    }
-
-    public void setRotation(int id, float rotation) {
-        footer.findViewById(id).setRotation(rotation);
-    }
-
-    public void setVisibility(int id, int visible) {
-        footer.findViewById(id).setVisibility(visible);
-    }
-
-    public void setVisibility(int visible) {
-        footer.setVisibility(visible);
     }
 }

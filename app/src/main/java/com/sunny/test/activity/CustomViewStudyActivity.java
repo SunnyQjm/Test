@@ -9,6 +9,10 @@ import android.view.View;
 
 import com.sunny.test.R;
 import com.sunny.test.adapter.EasyStringAdapter;
+import com.sunny.test.views.easy_refresh.ArrowRefreshHeader;
+import com.sunny.test.views.easy_refresh.EasyRefreshFooter;
+import com.sunny.test.views.easy_refresh.EasyRefreshFooterHandler;
+import com.sunny.test.views.easy_refresh.EasyRefreshHeaderHandler;
 import com.sunny.test.views.easy_refresh.EasyRefreshLayout;
 
 import java.util.ArrayList;
@@ -50,6 +54,11 @@ public class CustomViewStudyActivity extends AppCompatActivity {
         recyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
         adapter.bindToRecyclerView(recyclerView);
 
+        EasyRefreshHeaderHandler header = new ArrowRefreshHeader(R.layout.easy_refresh_header);
+        refreshLayout.setHeader(header);
+
+        EasyRefreshFooterHandler footer = new EasyRefreshFooter(R.layout.easy_refresh_footer);
+        refreshLayout.setFooter(footer);
         refreshLayout.setOnRefreshListener(() -> {
             linerLayoutManager.setScrollAble(false);
             Observable.create(e -> {
